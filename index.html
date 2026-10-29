@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖書館資料庫解密集點任務平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); }
+        .dark-glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
+        .gradient-bg { background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%); }
+        .badge-glow { box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
+        .stamp-rotate { transform: rotate(-12deg); }
+        @keyframes pulse-subtle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.92; transform: scale(1.02); } }
+        .pulse-active { animation: pulse-subtle 2.5s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased pb-12 selection:bg-blue-600 selection:text-white flex flex-col justify-between">
+
+    <header class="sticky top-0 z-40 w-full glass-card border-b border-slate-200/80 shadow-sm">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+                    <i data-lucide="book-open-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-slate-900 text-base sm:text-lg leading-tight">圖書館資料庫解密集點任務</h1>
+                    <p class="text-xs text-slate-500 font-medium">讀者智慧探索平台</p>
+                </div>
+            </div>
+
+            <!-- View Switcher Tabs -->
+            <div class="flex items-center gap-1 bg-slate-200/70 p-1 rounded-xl shrink-0">
+                <button id="nav-player-btn" onclick="switchView('player')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 bg-white text-blue-600 shadow-sm flex items-center gap-1.5">
+                    <i data-lucide="compass" class="w-4 h-4"></i>
+                    <span>讀者集點</span>
+                </button>
+                <button id="nav-admin-btn" onclick="switchView('admin')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>館員後台</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full px-4 sm:px-6 lg:px-8 pt-6 flex-1">
+
+        <section id="player-view" class="space-y-6 w-full max-w-5xl mx-auto">
+
+            <!-- Registration Card (if not registered) -->
+            <div id="registration-card" class="hidden bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-100 max-w-lg mx-auto">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                        <i data-lucide="library" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900">歡迎參加資料庫解密任務</h2>
+                    <p class="text-slate-500 text-sm mt-1">請填寫挑戰者基本資料，啟動個人專屬館藏探索關卡</p>
+                </div>
+
+                <form id="reg-form" onsubmit="handleRegistration(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">挑戰者姓名</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="reg-name" required placeholder="請輸入挑戰者姓名" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">員工編號</label>
+                        <div class="relative">
+                            <i data-lucide="id-card" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="reg-empid" required placeholder="例如：LIB202601" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">單位名稱</label>
+                        <div class="relative">
+                            <i data-lucide="graduation-cap" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="reg-dept" required placeholder="例如：資訊處 / 護理部" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 px-4 gradient-bg text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:opacity-95 active:scale-[0.99] transition-all duration-150 flex items-center justify-center gap-2 mt-2">
+                        <span>開始探索解密關卡</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div id="player-dashboard" class="hidden space-y-6">
+
+                <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-blue-50 rounded-full blur-2xl -z-0"></div>
+
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 border-b border-slate-100 pb-5">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg shadow-blue-200">
+                                <span id="user-avatar">挑</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 id="user-name-display" class="text-xl font-extrabold text-slate-900">載入中...</h2>
+                                    <span id="user-dept-tag" class="px-2.5 py-0.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-full border border-blue-100">單位</span>
+                                </div>
+                                <p class="text-xs font-medium text-slate-500 mt-0.5">員工編號：<span id="user-empid-display" class="font-mono text-slate-700">---</span></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="bg-amber-50 border border-amber-200/80 px-4 py-2.5 rounded-2xl flex items-center gap-3">
+                                <i data-lucide="sparkles" class="w-6 h-6 text-amber-500"></i>
+                                <div>
+                                    <div class="text-[10px] uppercase tracking-wider font-bold text-amber-700">當前解密點數</div>
+                                    <div class="text-xl font-extrabold text-amber-600"><span id="points-count">0</span> / <span id="target-points-display">5</span> 點</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Control buttons container (Hidden when user is redeemed) -->
+                            <div id="user-controls-container" class="flex items-center gap-2">
+                                <!-- Admin manual reset button -->
+                                <button onclick="openManualResetModal()" title="館員手動重置進度" class="px-3 py-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl border border-slate-200 hover:border-amber-200 transition flex items-center gap-1.5 text-xs font-bold">
+                                    <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-500"></i>
+                                    <span>重置進度</span>
+                                </button>
+                                <!-- Switch/Reset Reader button on the right of Reset Progress -->
+                                <button onclick="openLogoutModal()" title="結束本次任務並清除資料回到起始畫面" class="px-3 py-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-200 hover:border-rose-200 transition flex items-center gap-1.5 text-xs font-bold">
+                                    <i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i>
+                                    <span>結束並登出</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Point Badge Collection Grid -->
+                    <div class="pt-5">
+                        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="award" class="w-4 h-4"></i>
+                                <span>資料庫探索集點卡</span>
+                            </h3>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-100 shadow-sm">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-500 animate-pulse"></i>
+                                <span>每日 00:00 自動重置</span>
+                                <span class="text-slate-300">|</span>
+                                <span class="font-mono text-blue-800 font-bold" id="daily-countdown-display">計算中...</span>
+                            </div>
+                        </div>
+                        <div id="points-grid" class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                            <!-- Dynamic point items rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Mission Card -->
+                <div id="active-mission-card" class="bg-gradient-to-br from-blue-900 via-slate-900 to-indigo-950 rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden pulse-active">
+                    <div class="absolute top-0 right-0 p-8 opacity-10">
+                        <i data-lucide="database" class="w-48 h-48 text-white"></i>
+                    </div>
+
+                    <div class="relative z-10 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 text-xs font-bold tracking-wide border border-blue-400/30 flex items-center gap-1.5">
+                                <i data-lucide="target" class="w-3.5 h-3.5 text-amber-400"></i>
+                                <span>目前解鎖關卡 (<span id="mission-step-num">1</span>/<span id="mission-total-num">5</span>)</span>
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 text-[10px] bg-amber-400/20 text-amber-300 font-semibold rounded-md border border-amber-400/30 flex items-center gap-1">
+                                    <i data-lucide="shuffle" class="w-3 h-3"></i> 題庫隨機抽題
+                                </span>
+                                <span class="text-xs text-blue-300 font-mono">CODE: <span id="mission-qr-code-target" class="font-bold text-amber-400">TASK_A</span></span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 id="mission-title" class="text-2xl font-black text-white">載入中...</h3>
+                            <p id="mission-desc" class="text-slate-300 text-sm mt-1 leading-relaxed">請前往館內尋找對應資料庫點位的專屬 QR Code 並完成掃描驗證。</p>
+                        </div>
+
+                        <div class="pt-2 flex flex-wrap gap-3">
+                            <button onclick="openScannerModal()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition flex items-center gap-2">
+                                <i data-lucide="camera" class="w-5 h-5"></i>
+                                <span>開啟相機掃描 QR Code</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prize Voucher Card (Hidden until all tasks complete) -->
+                <div id="prize-voucher-card" class="hidden bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 rounded-3xl p-8 text-slate-950 shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-12 -top-12 w-48 h-48 bg-amber-300/30 rounded-full blur-2xl"></div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="space-y-2 text-center md:text-left">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/10 text-slate-900 text-xs font-bold border border-slate-950/10">
+                                <i data-lucide="trophy" class="w-4 h-4 text-amber-900"></i>
+                                <span>恭喜完成圖書館資料庫探索任務！</span>
+                            </div>
+                            <h3 class="text-3xl font-black text-slate-950">閱讀禮券 / 紀念好禮兌換憑證</h3>
+                            <p class="text-xs text-amber-950 font-medium">請將此畫面出示給圖書館流通櫃台館員，由館員點擊下方按鈕輸入密碼核銷。</p>
+                        </div>
+
+                        <div class="shrink-0 flex flex-col items-center gap-3">
+                            <div id="redeemed-stamp" class="hidden px-4 py-2 border-4 border-rose-600 text-rose-600 font-extrabold text-xl rounded-2xl stamp-rotate bg-white/90 shadow-xl">
+                                ✓ 已由櫃台核銷完成
+                            </div>
+                            <div id="voucher-action-container">
+                                <button onclick="openRedeemModal()" class="px-8 py-4 rounded-2xl bg-slate-950 text-amber-400 font-black text-base shadow-xl hover:bg-slate-900 active:scale-95 transition flex items-center gap-2">
+                                    <i data-lucide="key-round" class="w-5 h-5"></i>
+                                    <span>館員點擊核銷換禮</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="admin-view" class="hidden space-y-6 w-full max-w-6xl mx-auto">
+
+            <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="settings" class="w-6 h-6 text-blue-600"></i>
+                            <span>圖書館資料庫任務後台管理</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">設定發放點數目標、資料庫題庫內容與下載各關卡高畫質 QR Code 圖檔</p>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="downloadAllQRCodes()" class="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition flex items-center gap-1.5">
+                            <i data-lucide="images" class="w-4 h-4"></i>
+                            <span>批次下載全任務 QR Code</span>
+                        </button>
+                        <button onclick="logoutAdmin()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5" title="鎖定管理後台">
+                            <i data-lucide="lock" class="w-4 h-4 text-blue-600"></i>
+                            <span>鎖定後台</span>
+                        </button>
+                        <button onclick="exportParticipantsCSV()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>匯出 CSV 報表</span>
+                        </button>
+                        <button onclick="clearAllDataPrompt()" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition flex items-center gap-1.5">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>清除所有紀錄</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Global Activity Settings -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <label class="block text-xs font-bold text-slate-600">目標完成解密點數 (關卡題數)</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="setting-target-points" min="1" max="20" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="updateTargetPoints()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shrink-0">
+                                儲存
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-400">當前關卡總點位數：<span id="admin-task-count" class="font-bold text-blue-600">5</span> 關</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 space-y-1 flex flex-col justify-center">
+                        <span class="text-xs font-bold text-blue-800">館員核銷與管理密碼</span>
+                        <span class="text-2xl font-mono font-black text-blue-600">1208</span>
+                        <p class="text-[10px] text-blue-500">用於進入後台、現場兌獎核銷以及手動重置進度</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex flex-col justify-between">
+                        <span class="text-xs font-bold text-emerald-800">題庫規則設定</span>
+                        <div class="text-xs text-emerald-700 space-y-1 mt-1">
+                            <p>• A～D 題組：各自隨機抽出一題</p>
+                            <p>• E 題組：固定題目（Teamplus 頻道）</p>
+                            <p>• 闖關順序：A～E 隨機排序</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                        <i data-lucide="qr-code" class="w-4 h-4 text-blue-600"></i>
+                        <span>資料庫點位專屬 QR Code 與固定題庫內容</span>
+                    </h3>
+
+                    <div id="admin-tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Dynamic task cards loaded here -->
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-4 border-t border-slate-100">
+                    <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                        <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+                        <span>挑戰者解密闖關進度紀錄</span>
+                    </h3>
+
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-200">
+                                    <th class="px-4 py-3">挑戰者姓名</th>
+                                    <th class="px-4 py-3">員工編號</th>
+                                    <th class="px-4 py-3">單位名稱</th>
+                                    <th class="px-4 py-3">獲得點數</th>
+                                    <th class="px-4 py-3">狀態</th>
+                                    <th class="px-4 py-3">最後解密時間</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participants-table-body" class="divide-y divide-slate-100">
+                                <!-- Dynamic rows loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal 1: Scanner Modal -->
+    <div id="scanner-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md text-slate-800 space-y-4 relative shadow-2xl">
+            <button onclick="closeScannerModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-slate-900">掃描資料庫任務 QR Code</h3>
+                <p class="text-xs text-slate-500 mt-1">請將鏡頭對準館內標示為 <span id="scan-modal-target-code" class="font-mono font-bold text-blue-600">TASK_A</span> 的 QR Code</p>
+            </div>
+
+            <div class="bg-slate-900 rounded-2xl overflow-hidden aspect-square relative flex items-center justify-center border border-slate-700">
+                <div id="qr-reader-box" class="w-full h-full"></div>
+            </div>
+
+            <div id="scan-feedback-msg" class="text-xs text-center font-bold min-h-[20px]"></div>
+
+            <div class="border-t border-slate-100 pt-3">
+                <label class="block text-center text-xs text-slate-500 mb-2 cursor-pointer hover:text-blue-600 font-medium">
+                    <span class="underline">無法開啟相機？點此選擇相片上傳 QR Code</span>
+                    <input type="file" accept="image/*" onchange="handleQRFileSelect(event)" class="hidden">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Admin Redemption Verification Modal -->
+    <div id="redeem-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-slate-800 space-y-5 relative shadow-2xl text-center">
+            <button onclick="closeRedeemModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="shield-check" class="w-8 h-8"></i>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">館員核銷確認</h3>
+                <p class="text-xs text-slate-500 mt-1">請圖書館工作人員輸入密碼以完成獎品發放核銷。</p>
+            </div>
+
+            <div>
+                <input type="password" id="admin-pin-input" placeholder="請輸入 4 位數密碼" maxlength="6" class="w-full text-center tracking-widest text-2xl font-mono py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                <p id="redeem-error-msg" class="text-xs font-bold text-rose-500 mt-2 hidden">密碼錯誤，請重新輸入！(預設: 1208)</p>
+            </div>
+
+            <button onclick="submitAdminPinRedemption()" class="w-full py-3.5 gradient-bg text-white font-bold text-sm rounded-xl shadow-lg transition">
+                確認完成核銷
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 4: Admin Manual Reset Modal -->
+    <div id="manual-reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-slate-800 space-y-5 relative shadow-2xl text-center">
+            <button onclick="closeManualResetModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="rotate-ccw" class="w-8 h-8"></i>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">館員重置進度</h3>
+                <p class="text-xs text-slate-500 mt-1">請輸入館員密碼以清除該挑戰者目前集點與兌換紀錄。</p>
+            </div>
+
+            <div>
+                <input type="password" id="reset-pin-input" placeholder="請輸入 4 位數密碼" maxlength="6" class="w-full text-center tracking-widest text-2xl font-mono py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none">
+                <p id="reset-error-msg" class="text-xs font-bold text-rose-500 mt-2 hidden">密碼錯誤，請重新輸入！(提示: 1208)</p>
+            </div>
+
+            <button onclick="submitAdminManualReset()" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-amber-500/20 transition">
+                確認重置進度
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 5: Admin Access Auth Modal -->
+    <div id="admin-auth-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-slate-800 space-y-5 relative shadow-2xl text-center">
+            <button onclick="closeAdminAuthModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="shield-check" class="w-8 h-8"></i>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">館員後台權限驗證</h3>
+                <p class="text-xs text-slate-500 mt-1">切換至管理後台前，請先輸入館員密碼。</p>
+            </div>
+
+            <div>
+                <input type="password" id="admin-login-pin-input" placeholder="請輸入 4 位數密碼" maxlength="6" onkeyup="if(event.key==='Enter') submitAdminAuthPin()" class="w-full text-center tracking-widest text-2xl font-mono py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                <p id="admin-login-error-msg" class="text-xs font-bold text-rose-500 mt-2 hidden">密碼錯誤，請重新輸入！(提示: 1208)</p>
+            </div>
+
+            <button onclick="submitAdminAuthPin()" class="w-full py-3.5 gradient-bg text-white font-bold text-sm rounded-xl shadow-lg transition">
+                確認進入後台
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 6: Logout Confirm Modal (Replaces browser confirm) -->
+    <div id="logout-confirm-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-slate-800 space-y-5 relative shadow-2xl text-center">
+            <button onclick="closeLogoutModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="log-out" class="w-8 h-8"></i>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">結束並登出任務</h3>
+                <p class="text-xs text-slate-500 mt-1">確定要結束本次任務嗎？將清除目前挑戰者資料與闖關集點進度，返回填寫基本資料的起始畫面。</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeLogoutModal()" class="py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition">
+                    取消
+                </button>
+                <button onclick="confirmLogoutAndResetAll()" class="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition">
+                    確認清除登出
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Library Database Fixed Task Question Sets (A-E)
+        const FIXED_TASKS = [
+            {
+                id: 't1',
+                code: 'TASK_A',
+                name: 'A 題組：飛資得醫學資料庫',
+                questions: [
+                    {
+                        title: '哪個資料庫主要收錄人體各部位解剖3D圖像,對於製作學習教材或是對於民眾衛教非常有幫助?',
+                        desc: '飛資得醫學-請至該攤位回答正確的資料庫名稱即可獲得1點'
+                    },
+                    {
+                        title: '若是想了解藥物間的的交互作用, 或是想要知道藥物的外觀可以使用哪個資料庫查詢?',
+                        desc: '飛資得醫學-請至該攤位回答正確的資料庫名稱即可獲得1點'
+                    },
+                    {
+                        title: '醫院除了PubMed以外, 購入哪個平台可以進行整合查詢同時查到ClinicalKey, Medline with fulltext, Uptodate等跨資料庫的資料?',
+                        desc: '飛資得醫學-請至該攤位回答正確的資料庫名稱即可獲得1點'
+                    }
+                ]
+            },
+            {
+                id: 't2',
+                code: 'TASK_B',
+                name: 'B 題組：Elsevier 資料庫',
+                questions: [
+                    {
+                        title: '如果我想要同時查詢電子書及期刊文獻並且可將圖像直接匯出成Power Point該使用哪個資料庫?', 
+                        desc: 'Elsevier-請至攤位回答正確的資料庫名稱即可獲得1點' 
+                    },
+                    { 
+                        title: '哪個資料庫是屬於實證研究重要的查詢平台，並有PICO、Emtree等工具協助使用者查到更全面性的文獻?', 
+                        desc: 'Elsevier-請至該攤位回答正確的資料庫名稱即可獲得1點' 
+                    }
+                ]
+            },
+            { 
+                id: 't3', 
+                code: 'TASK_C', 
+                name: 'C 題組：UpToDate 實證醫學專區', 
+                questions: [
+                    { 
+                        title: '張醫師正在查詢臨床實證資料，透過資料庫他可以依據實證GRADE分級的標示得知該文獻於臨床建議的「強度」與「證據品質」，請問他有可能使用的是哪個資料庫？', 
+                        desc: 'UpToDate-請至該攤位回答正確的資料庫名稱即可獲得1點' 
+                    },
+                    { 
+                        title: '哪個資料庫由全球各專科的臨床專家撰寫與審查，涵蓋20多個醫學專科、上萬篇主題文章，並同時提供藥物交互作用工具，近期更是導入AI加強搜尋功能，讓檢索結果更為精準？', 
+                        desc: 'UpToDate-請至該攤位回答正確的資料庫名稱即可獲得1點' 
+                    }
+                ]
+            },
+            { 
+                id: 't4', 
+                code: 'TASK_D', 
+                name: 'D 題組：碩睿資訊 Cochrane 資料庫專區', 
+                questions: [
+                    { 
+                        title: '本院購買的資料庫中，內容以《Cochrane Database of Systematic Reviews (CDSR)》系統性評論為主，其次包含《Cochrane Central Register of Controlled Trials (CENTRAL)》隨機對照試驗書目資料，及《Cochrane Clinical Answers (CCAs)》臨床解答重點，為實證醫學研究者提供具參考價值的資源，請問是哪個資料庫？', 
+                        desc: '碩睿資訊-請至該攤位回答正確的資料庫名稱即可獲得1點' 
+                    }
+                ]
+            },
+            { 
+                id: 't5', 
+                code: 'TASK_E', 
+                name: 'E 題組：圖書館頻道服務專區', 
+                questions: [
+                    { 
+                        title: '請加入Teamplus【圖書館】資源服務&諮詢頻道', 
+                        desc: '請找圖書館館員掃描即可獲得一點' 
+                    }
+                ]
+            }
+        ];
+
+        // Global State Variables - 題庫固定由 FIXED_TASKS 控制
+        let tasks = FIXED_TASKS;
+        let targetPoints = 5;
+        let currentUser = JSON.parse(localStorage.getItem('qr_current_user')) || null;
+        let participantsData = JSON.parse(localStorage.getItem('qr_participants_log')) || {};
+        let isAdminAuthenticated = false;
+
+        let html5QrcodeScanner = null;
+        let isScannerStarting = false;
+        let countdownTimerInterval = null;
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            // 同步最新題目資料
+            tasks = FIXED_TASKS;
+            lucide.createIcons();
+            checkAndResetDailyData();
+            initAppUI();
+            startMidnightCountdown();
+        });
+
+        function getTodayString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function startMidnightCountdown() {
+            if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+
+            function updateTimer() {
+                const now = new Date();
+                const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+                const diffMs = nextMidnight - now;
+
+                if (diffMs <= 0) {
+                    checkAndResetDailyData();
+                    initAppUI();
+                    return;
+                }
+
+                const totalSec = Math.floor(diffMs / 1000);
+                const hrs = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+                const secs = String(totalSec % 60).padStart(2, '0');
+
+                const countdownEl = document.getElementById('daily-countdown-display');
+                if (countdownEl) {
+                    countdownEl.textContent = `剩餘 ${hrs}:${mins}:${secs}`;
+                }
+            }
+
+            updateTimer();
+            countdownTimerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function checkAndResetDailyData() {
+            const today = getTodayString();
+            const lastReset = localStorage.getItem('qr_last_reset_date');
+
+            if (lastReset !== today) {
+                console.log('New day detected! Resetting daily library database scan logs and redemptions...');
+                if (currentUser) {
+                    // 徹底清除所有掃描紀錄、兌換狀態與兌換時間
+                    currentUser.scans = {};
+                    currentUser.redeemed = false;
+                    currentUser.redeemedAt = null;
+                    
+                    // 每日零點為該挑戰者重新隨機抽題並重洗 A-E 關卡順序
+                    generateUserRandomSequence();
+                    saveCurrentUserData();
+                }
+                localStorage.setItem('qr_last_reset_date', today);
+            }
+        }
+
+        function switchView(view) {
+            const playerView = document.getElementById('player-view');
+            const adminView = document.getElementById('admin-view');
+            const navPlayerBtn = document.getElementById('nav-player-btn');
+            const navAdminBtn = document.getElementById('nav-admin-btn');
+
+            if (!playerView || !adminView) return;
+
+            if (view === 'admin' && !isAdminAuthenticated) {
+                openAdminAuthModal();
+                return;
+            }
+
+            if (view === 'player') {
+                playerView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+
+                if (navPlayerBtn) navPlayerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 bg-white text-blue-600 shadow-sm flex items-center gap-1.5";
+                if (navAdminBtn) navAdminBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+                initAppUI();
+            } else {
+                playerView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+
+                if (navAdminBtn) navAdminBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 bg-white text-blue-600 shadow-sm flex items-center gap-1.5";
+                if (navPlayerBtn) navPlayerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+                renderAdminDashboard();
+            }
+        }
+
+        function openAdminAuthModal() {
+            document.getElementById('admin-auth-modal').classList.remove('hidden');
+            document.getElementById('admin-login-pin-input').value = '';
+            document.getElementById('admin-login-error-msg').classList.add('hidden');
+            setTimeout(() => {
+                document.getElementById('admin-login-pin-input').focus();
+            }, 100);
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('admin-auth-modal').classList.add('hidden');
+        }
+
+        function submitAdminAuthPin() {
+            const pin = document.getElementById('admin-login-pin-input').value.trim();
+            if (pin === '1208') {
+                isAdminAuthenticated = true;
+                closeAdminAuthModal();
+                switchView('admin');
+            } else {
+                document.getElementById('admin-login-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminAuthenticated = false;
+            switchView('player');
+        }
+
+        function initAppUI() {
+            if (!currentUser) {
+                document.getElementById('registration-card').classList.remove('hidden');
+                document.getElementById('player-dashboard').classList.add('hidden');
+            } else {
+                document.getElementById('registration-card').classList.add('hidden');
+                document.getElementById('player-dashboard').classList.remove('hidden');
+
+                // Render User Profile Header
+                document.getElementById('user-name-display').textContent = currentUser.name;
+                document.getElementById('user-empid-display').textContent = currentUser.empId;
+                document.getElementById('user-dept-tag').textContent = currentUser.dept;
+                document.getElementById('user-avatar').textContent = currentUser.name.charAt(0);
+
+                // Prepare user's daily randomized task sequence
+                if (!currentUser.sequence || currentUser.sequence.length === 0 || currentUser.targetPoints !== targetPoints) {
+                    generateUserRandomSequence();
+                }
+
+                renderPointsGridAndCurrentMission();
+            }
+        }
+
+        function handleRegistration(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value.trim();
+            const empId = document.getElementById('reg-empid').value.trim().toUpperCase();
+            const dept = document.getElementById('reg-dept').value.trim();
+
+            if (!name || !empId || !dept) return;
+
+            currentUser = {
+                empId: empId,
+                name: name,
+                dept: dept,
+                scans: {}, 
+                assignedQuestions: {}, 
+                sequence: [],
+                targetPoints: targetPoints,
+                redeemed: false,
+                redeemedAt: null
+            };
+
+            generateUserRandomSequence();
+            saveCurrentUserData();
+            initAppUI();
+        }
+
+        function generateUserRandomSequence() {
+            if (!currentUser) return;
+
+            // 1. A-D 各自隨機抽出一題，E 固定題目
+            currentUser.assignedQuestions = {};
+            tasks.forEach(taskObj => {
+                if (taskObj.questions && taskObj.questions.length > 0) {
+                    const randomQ = taskObj.questions[Math.floor(Math.random() * taskObj.questions.length)];
+                    currentUser.assignedQuestions[taskObj.code] = randomQ;
+                }
+            });
+
+            // 2. A-E 關卡出現順序隨機洗牌
+            let codes = ['TASK_A', 'TASK_B', 'TASK_C', 'TASK_D', 'TASK_E'];
+            for (let i = codes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [codes[i], codes[j]] = [codes[j], codes[i]];
+            }
+
+            currentUser.sequence = codes.slice(0, targetPoints);
+            currentUser.targetPoints = targetPoints;
+
+            saveCurrentUserData();
+        }
+
+        function saveCurrentUserData() {
+            if (!currentUser) return;
+            localStorage.setItem('qr_current_user', JSON.stringify(currentUser));
+
+            const today = getTodayString();
+            participantsData[currentUser.empId] = {
+                name: currentUser.name,
+                empId: currentUser.empId,
+                dept: currentUser.dept,
+                scansCount: Object.keys(currentUser.scans || {}).length,
+                redeemed: currentUser.redeemed || false,
+                lastScanTime: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }),
+                date: today
+            };
+            localStorage.setItem('qr_participants_log', JSON.stringify(participantsData));
+        }
+
+        function openLogoutModal() {
+            const modal = document.getElementById('logout-confirm-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            } else {
+                confirmLogoutAndResetAll();
+            }
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-confirm-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function confirmLogoutAndResetAll() {
+            closeLogoutModal();
+
+            // 如果有挑戰者資料，從本地紀錄中清除當前挑戰者的個別記錄
+            if (currentUser && currentUser.empId && participantsData[currentUser.empId]) {
+                delete participantsData[currentUser.empId];
+                localStorage.setItem('qr_participants_log', JSON.stringify(participantsData));
+            }
+
+            // 完全重置當前使用者狀態與暫存
+            currentUser = null;
+            localStorage.removeItem('qr_current_user');
+
+            // 清空登記表單欄位
+            const nameInp = document.getElementById('reg-name');
+            const empIdInp = document.getElementById('reg-empid');
+            const deptInp = document.getElementById('reg-dept');
+            if (nameInp) nameInp.value = '';
+            if (empIdInp) empIdInp.value = '';
+            if (deptInp) deptInp.value = '';
+
+            // 清除掃描器反饋與兌換印章
+            const redeemedStamp = document.getElementById('redeemed-stamp');
+            if (redeemedStamp) redeemedStamp.classList.add('hidden');
+
+            // 確保切換回填寫基本資料的起始頁面
+            switchView('player');
+            initAppUI();
+        }
+
+        function resetParticipantSession() {
+            openLogoutModal();
+        }
+
+        function renderPointsGridAndCurrentMission() {
+            const today = getTodayString();
+            const userScans = currentUser.scans || {};
+
+            const completedCodes = Object.keys(userScans).filter(code => userScans[code] === today);
+            const pointsCount = completedCodes.length;
+
+            document.getElementById('points-count').textContent = pointsCount;
+            document.getElementById('target-points-display').textContent = targetPoints;
+
+            // Render Points Grid
+            const gridContainer = document.getElementById('points-grid');
+            gridContainer.innerHTML = '';
+
+            const userSeq = currentUser.sequence || [];
+
+            for (let i = 0; i < targetPoints; i++) {
+                const taskCode = userSeq[i] || `TASK_${i+1}`;
+                const isDone = userScans[taskCode] === today;
+
+                const slot = document.createElement('div');
+                slot.className = `p-3.5 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center justify-center relative overflow-hidden ${
+                    isDone 
+                    ? 'bg-gradient-to-b from-blue-50 to-blue-100/60 border-blue-300 text-blue-800 shadow-md shadow-blue-100' 
+                    : 'bg-slate-50 border-slate-200 text-slate-400'
+                }`;
+
+                slot.innerHTML = `
+                    <div class="w-9 h-9 rounded-full ${isDone ? 'bg-blue-600 text-white badge-glow' : 'bg-slate-200 text-slate-400'} flex items-center justify-center font-bold text-sm mb-1.5">
+                        ${isDone ? '<i data-lucide="check" class="w-5 h-5"></i>' : (i + 1)}
+                    </div>
+                    <span class="text-[11px] font-extrabold ${isDone ? 'text-blue-900' : 'text-slate-500'} font-mono">${taskCode}</span>
+                    <span class="text-[9px] font-bold ${isDone ? 'text-blue-600' : 'text-slate-400'}">${isDone ? '已解鎖' : '未探索'}</span>
+                `;
+                gridContainer.appendChild(slot);
+            }
+
+            let nextMissionCode = null;
+            let nextMissionIndex = -1;
+
+            for (let i = 0; i < userSeq.length; i++) {
+                const code = userSeq[i];
+                if (userScans[code] !== today) {
+                    nextMissionCode = code;
+                    nextMissionIndex = i;
+                    break;
+                }
+            }
+
+            const activeMissionCard = document.getElementById('active-mission-card');
+            const prizeVoucherCard = document.getElementById('prize-voucher-card');
+            const userControlsContainer = document.getElementById('user-controls-container');
+
+            // 條件：已兌換狀態隱藏「結束並登出」及「重置進度」按鈕
+            if (currentUser.redeemed) {
+                if (userControlsContainer) userControlsContainer.classList.add('hidden');
+            } else {
+                if (userControlsContainer) userControlsContainer.classList.remove('hidden');
+            }
+
+            if (pointsCount >= targetPoints || !nextMissionCode) {
+                activeMissionCard.classList.add('hidden');
+                prizeVoucherCard.classList.remove('hidden');
+
+                if (currentUser.redeemed) {
+                    document.getElementById('redeemed-stamp').classList.remove('hidden');
+                    document.getElementById('voucher-action-container').innerHTML = `
+                        <div class="px-5 py-3 bg-white/10 backdrop-blur-md rounded-2xl text-xs text-amber-950 border border-amber-900/20 font-mono font-bold">
+                            核銷時間：${currentUser.redeemedAt || '今日'}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('redeemed-stamp').classList.add('hidden');
+                }
+
+                try { confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } }); } catch(e){}
+            } else {
+                activeMissionCard.classList.remove('hidden');
+                prizeVoucherCard.classList.add('hidden');
+
+                let assignedQ = currentUser.assignedQuestions ? currentUser.assignedQuestions[nextMissionCode] : null;
+
+                if (!assignedQ) {
+                    const taskObj = tasks.find(t => t.code === nextMissionCode);
+                    if (taskObj && taskObj.questions && taskObj.questions.length > 0) {
+                        assignedQ = taskObj.questions[Math.floor(Math.random() * taskObj.questions.length)];
+                    } else {
+                        assignedQ = {
+                            title: `關卡任務 ${nextMissionCode}`,
+                            desc: `請在館內搜尋標示有 ${nextMissionCode} 的專屬資料庫 QR Code 並完成掃描。`
+                        };
+                    }
+                }
+
+                document.getElementById('mission-step-num').textContent = nextMissionIndex + 1;
+                document.getElementById('mission-total-num').textContent = targetPoints;
+                document.getElementById('mission-qr-code-target').textContent = nextMissionCode;
+                document.getElementById('mission-title').textContent = assignedQ.title;
+                document.getElementById('mission-desc').innerHTML = `<span class="inline-block px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 font-bold mr-1.5 text-xs">💡 提示</span>${assignedQ.desc}`;
+            }
+
+            lucide.createIcons();
+        }
+
+        function openScannerModal() {
+            const activeTargetCode = document.getElementById('mission-qr-code-target').textContent;
+            document.getElementById('scan-modal-target-code').textContent = activeTargetCode;
+            document.getElementById('scanner-modal').classList.remove('hidden');
+            document.getElementById('scan-feedback-msg').textContent = '';
+
+            setTimeout(() => {
+                startCameraScanner();
+            }, 300);
+        }
+
+        async function closeScannerModal() {
+            document.getElementById('scanner-modal').classList.add('hidden');
+
+            if (html5QrcodeScanner) {
+                try {
+                    // 檢查相機是否正在掃描或已啟動
+                    const isScanning = typeof html5QrcodeScanner.isScanning === 'boolean'
+                        ? html5QrcodeScanner.isScanning
+                        : (html5QrcodeScanner.getState && html5QrcodeScanner.getState() === 2); // 2: SCANNING
+
+                    if (isScanning) {
+                        await html5QrcodeScanner.stop();
+                    }
+                    await html5QrcodeScanner.clear();
+                } catch (err) {
+                    console.warn("Scanner stopped safely:", err);
+                } finally {
+                    html5QrcodeScanner = null;
+                    isScannerStarting = false;
+                }
+            }
+        }
+
+        function startCameraScanner() {
+            if (html5QrcodeScanner || isScannerStarting) return;
+
+            isScannerStarting = true;
+            const scannerInstance = new Html5Qrcode("qr-reader-box");
+            html5QrcodeScanner = scannerInstance;
+
+            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+            scannerInstance.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess
+            ).then(() => {
+                isScannerStarting = false;
+            }).catch(err => {
+                isScannerStarting = false;
+                console.warn("Camera start failed, fallback to file upload or manual.", err);
+                // 若啟動失敗且相機實例仍存在，進行清理
+                if (html5QrcodeScanner === scannerInstance) {
+                    try { scannerInstance.clear(); } catch(e) {}
+                    html5QrcodeScanner = null;
+                }
+                const feedbackEl = document.getElementById('scan-feedback-msg');
+                if (feedbackEl) {
+                    feedbackEl.innerHTML = `<span class="text-amber-400">無法啟動相機，請使用下方選擇照片上傳 QR Code</span>`;
+                }
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            processScannedCode(decodedText.trim());
+        }
+
+        function handleQRFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // 若相機正在運行先安全暫停或停止
+            if (html5QrcodeScanner) {
+                const isScanning = typeof html5QrcodeScanner.isScanning === 'boolean'
+                    ? html5QrcodeScanner.isScanning
+                    : (html5QrcodeScanner.getState && html5QrcodeScanner.getState() === 2);
+                if (isScanning) {
+                    html5QrcodeScanner.stop().catch(() => {}).finally(() => {
+                        html5QrcodeScanner = null;
+                        scanFromFile(file);
+                    });
+                    return;
+                }
+            }
+            scanFromFile(file);
+        }
+
+        function scanFromFile(file) {
+            const fileScanner = new Html5Qrcode("qr-reader-box");
+            fileScanner.scanFile(file, true)
+                .then(decodedText => {
+                    fileScanner.clear();
+                    processScannedCode(decodedText.trim());
+                })
+                .catch(err => {
+                    try { fileScanner.clear(); } catch(e) {}
+                    showScanFeedback("無法識別該圖片中的 QR Code，請重試", "rose");
+                });
+        }
+
+        function processScannedCode(scannedCode) {
+            const today = getTodayString();
+            const userScans = currentUser.scans || {};
+
+            const userSeq = currentUser.sequence || [];
+            let currentRequiredCode = null;
+
+            for (let code of userSeq) {
+                if (userScans[code] !== today) {
+                    currentRequiredCode = code;
+                    break;
+                }
+            }
+
+            if (!currentRequiredCode) {
+                showScanFeedback("您已完成今日所有資料庫解密任務！", "emerald");
+                return;
+            }
+
+            if (scannedCode !== currentRequiredCode) {
+                const isTaskInSystem = tasks.some(t => t.code === scannedCode);
+                if (isTaskInSystem) {
+                    showScanFeedback(`這是 ${scannedCode} 的 QR Code！您目前的目標是前往解鎖 ${currentRequiredCode}`, "amber");
+                } else {
+                    showScanFeedback(`無效的關卡 QR Code (${scannedCode})`, "rose");
+                }
+                return;
+            }
+
+            if (userScans[scannedCode] === today) {
+                showScanFeedback(`此 QR Code 今日 (${today}) 已完成過解密！一天限掃一次`, "amber");
+                return;
+            }
+
+            currentUser.scans[scannedCode] = today;
+            saveCurrentUserData();
+
+            showScanFeedback(`🎉 成功解鎖 ${scannedCode}！點數 +1`, "emerald");
+
+            setTimeout(() => {
+                closeScannerModal();
+                renderPointsGridAndCurrentMission();
+            }, 1200);
+        }
+
+        function showScanFeedback(text, color) {
+            const msgEl = document.getElementById('scan-feedback-msg');
+            const colorClass = color === 'emerald' ? 'text-emerald-400' : (color === 'amber' ? 'text-amber-400' : 'text-rose-400');
+            msgEl.className = `text-xs text-center font-bold min-h-[20px] ${colorClass}`;
+            msgEl.textContent = text;
+        }
+
+        function openRedeemModal() {
+            document.getElementById('redeem-modal').classList.remove('hidden');
+            document.getElementById('admin-pin-input').value = '';
+            document.getElementById('redeem-error-msg').classList.add('hidden');
+        }
+
+        function closeRedeemModal() {
+            document.getElementById('redeem-modal').classList.add('hidden');
+        }
+
+        function submitAdminPinRedemption() {
+            const pin = document.getElementById('admin-pin-input').value.trim();
+            if (pin === '1208') {
+                currentUser.redeemed = true;
+                currentUser.redeemedAt = new Date().toLocaleString('zh-TW');
+                saveCurrentUserData();
+
+                closeRedeemModal();
+                renderPointsGridAndCurrentMission();
+                alert("🎉 兌換成功！已由館員完成核銷作業。");
+            } else {
+                document.getElementById('redeem-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function openManualResetModal() {
+            document.getElementById('manual-reset-modal').classList.remove('hidden');
+            document.getElementById('reset-pin-input').value = '';
+            document.getElementById('reset-error-msg').classList.add('hidden');
+        }
+
+        function closeManualResetModal() {
+            document.getElementById('manual-reset-modal').classList.add('hidden');
+        }
+
+        function submitAdminManualReset() {
+            const pin = document.getElementById('reset-pin-input').value.trim();
+            if (pin === '1208') {
+                if (!currentUser) return;
+                currentUser.scans = {};
+                currentUser.assignedQuestions = {};
+                currentUser.redeemed = false;
+                currentUser.redeemedAt = null;
+                generateUserRandomSequence();
+                saveCurrentUserData();
+
+                closeManualResetModal();
+                renderPointsGridAndCurrentMission();
+                alert("🔄 已成功由館員手動重置該挑戰者解密集點進度與抽題紀錄！");
+            } else {
+                document.getElementById('reset-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function updateTargetPoints() {
+            const val = parseInt(document.getElementById('setting-target-points').value);
+            if (val && val > 0 && val <= 5) {
+                targetPoints = val;
+                alert(`已成功更新目標點數為 ${targetPoints} 點！`);
+                if (currentUser) {
+                    generateUserRandomSequence();
+                }
+                renderAdminDashboard();
+            } else {
+                alert("點數設定範圍為 1 ~ 5 點！");
+            }
+        }
+
+        function renderAdminDashboard() {
+            document.getElementById('setting-target-points').value = targetPoints;
+            document.getElementById('admin-task-count').textContent = tasks.length;
+
+            const tasksContainer = document.getElementById('admin-tasks-container');
+            tasksContainer.innerHTML = '';
+
+            tasks.forEach((t) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-3xl border border-slate-200/80 shadow-md space-y-4 flex flex-col justify-between";
+
+                const qrContainerId = `qr-canvas-${t.id}`;
+                const qCount = t.questions ? t.questions.length : 0;
+
+                let questionsListHTML = t.questions.map((q, qidx) => `
+                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1">
+                        <div class="font-bold text-slate-800 flex items-start gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-blue-100 text-blue-700 font-mono text-[10px] flex items-center justify-center shrink-0 mt-0.5">${qidx + 1}</span>
+                            <span class="leading-snug">${q.title}</span>
+                        </div>
+                        <div class="text-[11px] text-amber-700 bg-amber-50/80 px-2 py-1 rounded-md border border-amber-100/60 pl-5">
+                            <span class="font-bold">提示：</span>${q.desc}
+                        </div>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-mono font-bold text-xs border border-blue-100">
+                                ${t.code}
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md ${t.code === 'TASK_E' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'} font-bold text-[10px]">
+                                ${t.code === 'TASK_E' ? '固定題 (1題)' : `題庫隨機 (${qCount}題選1)`}
+                            </span>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm">${t.name}</h4>
+                        </div>
+
+                        <div class="space-y-1.5 pt-1">
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                                <span>題庫清單</span>
+                            </div>
+                            <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
+                                ${questionsListHTML}
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center justify-center pt-3 gap-2">
+                            <div id="${qrContainerId}" class="p-2 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+                            <span class="text-[10px] font-mono font-bold text-slate-400">掃描碼: ${t.code}</span>
+                            <button onclick="downloadSingleQRHD('${t.code}', '${t.name}')" class="w-full mt-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>下載高畫質 PNG</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                tasksContainer.appendChild(card);
+
+                setTimeout(() => {
+                    const el = document.getElementById(qrContainerId);
+                    if (el) {
+                        el.innerHTML = '';
+                        new QRCode(el, {
+                            text: t.code,
+                            width: 100,
+                            height: 100,
+                            colorDark: "#0f172a",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    }
+                }, 100);
+            });
+
+            renderParticipantsTable();
+            lucide.createIcons();
+        }
+
+        // 下載單張高畫質 QR Code PNG (800x800)
+        function downloadSingleQRHD(code, name) {
+            const tempDiv = document.createElement('div');
+            tempDiv.style.display = 'none';
+            document.body.appendChild(tempDiv);
+
+            new QRCode(tempDiv, {
+                text: code,
+                width: 700,
+                height: 700,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const qrImg = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
+                if (!qrImg) {
+                    tempDiv.remove();
+                    return;
+                }
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 800;
+                canvas.height = 920;
+
+                // 繪製白色底卡
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 標題區域
+                ctx.fillStyle = "#1e293b";
+                ctx.font = "bold 32px 'Plus Jakarta Sans', system-ui, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(`圖書館資料庫解密任務 - ${code}`, 400, 55);
+
+                ctx.font = "normal 22px system-ui, sans-serif";
+                ctx.fillStyle = "#64748b";
+                ctx.fillText(name, 400, 95);
+
+                // 繪製 QR Code (置中)
+                if (qrImg.tagName === 'IMG') {
+                    ctx.drawImage(qrImg, 50, 120, 700, 700);
+                } else {
+                    ctx.drawImage(qrImg, 50, 120, 700, 700);
+                }
+
+                // 底部識別碼文字
+                ctx.font = "bold 28px monospace";
+                ctx.fillStyle = "#2563eb";
+                ctx.fillText(`TOKEN: ${code}`, 400, 875);
+
+                const a = document.createElement('a');
+                a.download = `QR_${code}_HD.png`;
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+
+                tempDiv.remove();
+            }, 250);
+        }
+
+        // 批次下載 A-E 全套高畫質 QR Code
+        function downloadAllQRCodes() {
+            tasks.forEach((t, idx) => {
+                setTimeout(() => {
+                    downloadSingleQRHD(t.code, t.name);
+                }, idx * 350);
+            });
+        }
+
+        function renderParticipantsTable() {
+            const tbody = document.getElementById('participants-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const logs = Object.values(participantsData);
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs italic">尚無挑戰者記錄</td></tr>`;
+                return;
+            }
+
+            logs.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50/80 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-slate-800 text-xs">${p.name}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-slate-600">${p.empId}</td>
+                    <td class="px-4 py-3 text-xs text-slate-600">${p.dept}</td>
+                    <td class="px-4 py-3 text-xs font-bold text-blue-600">${p.scansCount} / ${targetPoints} 點</td>
+                    <td class="px-4 py-3">
+                        ${p.redeemed 
+                            ? '<span class="px-2.5 py-1 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-full">已核銷</span>' 
+                            : (p.scansCount >= targetPoints 
+                                ? '<span class="px-2.5 py-1 text-[10px] font-extrabold bg-amber-100 text-amber-800 rounded-full">未兌換</span>' 
+                                : '<span class="px-2.5 py-1 text-[10px] font-medium bg-slate-100 text-slate-500 rounded-full">解密中</span>')}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-[11px] text-slate-400">${p.lastScanTime || '---'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openTaskModal(editId = null) {
+            document.getElementById('task-modal').classList.remove('hidden');
+            document.getElementById('task-form').reset();
+            document.getElementById('task-id').value = '';
+            document.getElementById('question-pool-container').innerHTML = '';
+
+            if (editId) {
+                const t = tasks.find(x => x.id === editId);
+                if (t) {
+                    document.getElementById('task-id').value = t.id;
+                    document.getElementById('task-code').value = t.code;
+                    document.getElementById('task-name').value = t.name || t.code;
+                    document.getElementById('task-modal-title').textContent = "編輯資料庫關卡與題庫";
+
+                    if (t.questions && t.questions.length > 0) {
+                        t.questions.forEach(q => addQuestionToPoolUI(q.title, q.desc));
+                    } else {
+                        addQuestionToPoolUI();
+                        addQuestionToPoolUI();
+                        addQuestionToPoolUI();
+                    }
+                }
+            } else {
+                document.getElementById('task-modal-title').textContent = "新增資料庫關卡與題庫";
+                const nextCode = `TASK_${String.fromCharCode(65 + tasks.length)}`;
+                document.getElementById('task-code').value = nextCode;
+                document.getElementById('task-name').value = `任務 ${String.fromCharCode(65 + tasks.length)}：資料庫檢索點`;
+                // Default 3 question inputs for new task
+                addQuestionToPoolUI();
+                addQuestionToPoolUI();
+                addQuestionToPoolUI();
+            }
+            lucide.createIcons();
+        }
+
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+        }
+
+        function addQuestionToPoolUI(title = '', desc = '') {
+            const container = document.getElementById('question-pool-container');
+            const itemIdx = container.children.length + 1;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = "p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 relative group";
+            itemDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-blue-600 font-mono">題目 #${itemIdx}</span>
+                    <button type="button" onclick="this.closest('.group').remove()" class="text-slate-400 hover:text-rose-500 p-1 transition" title="移除此題">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div>
+                    <input type="text" class="q-title-input w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none" placeholder="題目名稱 / 資料庫解密標題" value="${title.replace(/"/g, '&quot;')}" required>
+                </div>
+                <div>
+                    <textarea class="q-desc-input w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none" rows="2" placeholder="詳細資料庫尋寶提示與檢索說明..." required>${desc}</textarea>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+            lucide.createIcons();
+        }
+
+        function handleTaskSave(e) {
+            e.preventDefault();
+            const id = document.getElementById('task-id').value;
+            const code = document.getElementById('task-code').value.trim().toUpperCase();
+            const name = document.getElementById('task-name').value.trim();
+
+            const poolContainer = document.getElementById('question-pool-container');
+            const qBlocks = poolContainer.querySelectorAll('.group');
+            const questions = [];
+
+            qBlocks.forEach(block => {
+                const qTitle = block.querySelector('.q-title-input').value.trim();
+                const qDesc = block.querySelector('.q-desc-input').value.trim();
+                if (qTitle && qDesc) {
+                    questions.push({ title: qTitle, desc: qDesc });
+                }
+            });
+
+            if (questions.length === 0) {
+                alert("請至少新增一筆題目於專屬題庫中！");
+                return;
+            }
+
+            if (id) {
+                const idx = tasks.findIndex(x => x.id === id);
+                if (idx !== -1) {
+                    tasks[idx] = { id, code, name, questions };
+                }
+            } else {
+                const newId = 't_' + Date.now();
+                tasks.push({ id: newId, code, name, questions });
+            }
+
+            localStorage.setItem('qr_tasks', JSON.stringify(tasks));
+            closeTaskModal();
+            renderAdminDashboard();
+        }
+
+        function editTask(id) {
+            openTaskModal(id);
+        }
+
+        function deleteTask(id) {
+            if (confirm("確定要刪除此關卡及其專屬題庫嗎？")) {
+                tasks = tasks.filter(x => x.id !== id);
+                localStorage.setItem('qr_tasks', JSON.stringify(tasks));
+                renderAdminDashboard();
+            }
+        }
+
+        function clearAllDataPrompt() {
+            if (confirm("警告：這將會清除所有測試的挑戰者記錄，確定嗎？")) {
+                participantsData = {};
+                localStorage.removeItem('qr_participants_log');
+                renderAdminDashboard();
+            }
+        }
+
+        function exportParticipantsCSV() {
+            const logs = Object.values(participantsData);
+            if (logs.length === 0) {
+                alert("目前無可匯出的資料");
+                return;
+            }
+
+            let csvContent = "\uFEFF挑戰者姓名,員工編號,單位名稱,獲得點數,當前目標,兌換狀態,最後解密時間\n";
+            logs.forEach(p => {
+                csvContent += `"${p.name}","${p.empId}","${p.dept}",${p.scansCount},${targetPoints},"${p.redeemed ? '已核銷' : '未兌換'}","${p.lastScanTime || ''}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `圖書館資料庫解密紀錄_${getTodayString()}.csv`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
