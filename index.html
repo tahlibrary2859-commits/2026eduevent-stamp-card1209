@@ -329,7 +329,7 @@
 
     <!-- Modal 1: Scanner Modal -->
     <div id="scanner-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-md text-slate-800 space-y-4 relative shadow-2xl">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-lg text-slate-800 space-y-4 relative shadow-2xl">
             <button onclick="closeScannerModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full transition">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
@@ -339,7 +339,7 @@
                 <p class="text-xs text-slate-500 mt-1">請將鏡頭對準館內標示為 <span id="scan-modal-target-code" class="font-mono font-bold text-blue-600">TASK_A</span> 的 QR Code</p>
             </div>
 
-            <div class="bg-slate-900 rounded-2xl overflow-hidden aspect-square relative flex items-center justify-center border border-slate-700">
+            <div class="bg-slate-900 rounded-2xl overflow-hidden aspect-square relative flex items-center justify-center border border-slate-700 w-full max-w-sm sm:max-w-md mx-auto">
                 <div id="qr-reader-box" class="w-full h-full"></div>
             </div>
 
@@ -960,7 +960,22 @@
             const scannerInstance = new Html5Qrcode("qr-reader-box");
             html5QrcodeScanner = scannerInstance;
 
-            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+            // 動態計算對焦框尺寸，依據視窗寬高自動取 75%，最大支援 320x320，提升對焦面積與辨識速度
+            const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+                const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                const boxSize = Math.floor(minEdge * 0.78);
+                const finalSize = Math.max(260, Math.min(boxSize, 340));
+                return {
+                    width: finalSize,
+                    height: finalSize
+                };
+            };
+
+            const config = { 
+                fps: 15, 
+                qrbox: qrboxFunction,
+                aspectRatio: 1.0
+            };
 
             scannerInstance.start(
                 { facingMode: "environment" },
